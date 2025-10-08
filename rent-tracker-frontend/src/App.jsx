@@ -1,16 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Navbar from "./components/Navbar";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import './App.css';
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100 text-gray-900">
+      <div className="App">
         <Navbar />
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </div>
     </Router>

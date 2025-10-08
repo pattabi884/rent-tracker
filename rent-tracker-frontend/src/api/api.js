@@ -1,68 +1,55 @@
-import axios from "axios";
+import axios from 'axios';
 
-// ✅ Backend base URL
-const API_URL = "http://localhost:3000/api";
+const API_BASE_URL = 'http://localhost:3000/api';
 
-// ------------------- AUTH -------------------
-// Login
-export const login = async (email, password) => {
-  try {
-    const res = await axios.post(`${API_URL}/auth/login`, { email, password });
-    return res.data;
-  } catch (err) {
-    console.error("Login error:", err.response?.data || err.message);
-    throw err;
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// ✅ ENHANCED INTERCEPTOR WITH BETTER DEBUGGING
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    console.log('🔐 API Interceptor - URL:', config.url);
+    console.log('🔐 API Interceptor - Token in localStorage:', !!token);
+    console.log('🔐 API Interceptor - Full token:', token);
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('✅ Authorization header set with token');
+      console.log('🔐 Headers being sent:', config.headers);
+    } else {
+      console.log('❌ No token found in localStorage');
+      console.log('🔐 Available localStorage keys:', Object.keys(localStorage));
+    }
+    return config;
+  },
+  (error) => {
+    console.error('❌ Interceptor error:', error);
+    return Promise.reject(error);
   }
-};
+);
 
-// Register (if needed)
-export const register = async (email, password) => {
-  try {
-    const res = await axios.post(`${API_URL}/auth/register`, { email, password });
-    return res.data;
-  } catch (err) {
-    console.error("Register error:", err.response?.data || err.message);
-    throw err;
-  }
+// Your exports here...
+export const getPropertiesSummary = () => {
+  console.log('🔄 Calling getPropertiesSummary...');
+  return api.get('/properties/summary');
 };
+// ... rest of your exports
 
-// ------------------- RENTS -------------------
-// Get all rents (protected)
-export const getRents = async (token) => {
-  try {
-    const res = await axios.get(`${API_URL}/rents`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching rents:", err.response?.data || err.message);
-    throw err;
-  }
-};
+// ✅ THEN YOUR EXPORTS COME AFTER
 
-// Get rent summary (protected)
-export const getRentSummary = async (token) => {
-  try {
-    const res = await axios.get(`${API_URL}/rents/summary`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching rent summary:", err.response?.data || err.message);
-    throw err;
-  }
-};
+export const setupProperties = (data) => api.post('/properties/setup', data);
+export const updateHouseStatus = (propertyId, houseId, data) => 
+  api.patch(`/properties/${propertyId}/houses/${houseId}/status`, data);
+export const updateProperty = (propertyId, data) => api.put(`/properties/${propertyId}`, data);
+export const deleteProperty = (propertyId) => api.delete(`/properties/${propertyId}`);
 
-// ------------------- INCOMES -------------------
-// Get all incomes (protected)
-export const getIncomes = async (token) => {
-  try {
-    const res = await axios.get(`${API_URL}/incomes`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching incomes:", err.response?.data || err.message);
-    throw err;
-  }
-};
+// Auth APIs
+export const login = (credentials) => api.post('/auth/login', credentials);
+export const register = (userData) => api.post('/auth/register', userData);
+
+export default api;
